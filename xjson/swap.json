@@ -1,0 +1,6 @@
+
+{
+  "view": "swap",
+  "title": "Swap Deck",
+  "layout": { "type": "panel", "children": [{"type":"stat","id":"feePolicy","label":"Fee Policy","value":"5%"}] }
+}

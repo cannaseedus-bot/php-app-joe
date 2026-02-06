@@ -1,0 +1,6 @@
+
+{
+  "view": "generator",
+  "title": "App Generator",
+  "layout": { "type": "panel", "children": [{"type": "log", "id": "builderLog", "height":240}] }
+}
