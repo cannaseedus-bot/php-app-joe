@@ -1,0 +1,9 @@
+/* css/styles.css */
+body{font-family:system-ui,Arial;background:#f2f4f8;margin:0;color:#222}
+.topbar{display:flex;justify-content:space-between;padding:12px 24px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,0.05)}
+.container{display:grid;grid-template-columns:220px 1fr 300px;gap:20px;padding:20px}
+.leftcol .sidebar-card{background:#fff;padding:12px;margin-bottom:10px;border-radius:8px}
+.feed .post-box{background:#fff;padding:12px;margin-bottom:12px;border-radius:10px}
+.card{background:#fff;border-radius:10px;padding:12px;margin-bottom:12px;box-shadow:0 6px 18px rgba(0,0,0,0.04)}
+.card .thumb{width:100%;max-height:160px;object-fit:cover;border-radius:6px}
+@media(max-width:900px){ .container{grid-template-columns:1fr} .rightcol{display:none} }

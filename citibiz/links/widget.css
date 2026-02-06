@@ -1,0 +1,2 @@
+/* widget.css small responsive tweaks */
+@media(max-width:600px){ .widget{ width:150px;height:150px } }
