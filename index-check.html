@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Basic SEO / PWA / Social -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1200,initial-scale=0.40" />
+  <title>Joe's List - Microblog Platform</title>
+  <meta name="description" content="Joe's List - A microblog platform to explore curated websites, videos, shopping, blogs, news, images, and AI content." />
+  <meta name="theme-color" content="#000000" />
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/joeslist-192.png">
+  <meta property="og:title" content="Joe's List - Microblog Platform" />
+  <meta property="og:description" content="Discover curated websites, trending videos, shopping deals, blogs, news, images, and AI content in one place." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://joeslist.neocities.org/" />
+  <meta property="og:image" content="https://joeslist.neocities.org/icons/joeslist-192.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Joe's List - Microblog Platform" />
+  <meta name="twitter:description" content="Discover curated websites, trending videos, shopping deals, blogs, news, images, and AI content in one place." />
+  <meta name="twitter:image" content="https://joeslist.neocities.org/icons/joeslist-192.png" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://joeslist.neocities.org/" />
+
+  <!-- DOMPurify for HTML sanitization -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.7/purify.min.js"></script>
+
+  <style>
+    :root {
+      --accent: #e74c3c;
+      --neon: #00ff66;
+      --bg: #0f1113;
+      --card: #111217;
+      --muted: #9be09b;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--neon);
+    }
+
+    a { text-decoration: none; color: var(--neon); }
+    button { font: inherit; cursor: pointer; }
+
+    /* ---------------- HEADER ---------------- */
+    header {
+      background: #000;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 2px solid var(--neon);
+    }
+    header .brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    header .brand img { width: 64px; height: 64px; }
+    header .brand h1 {
+      font-size: 2rem;
+      color: var(--neon);
+      text-shadow: 0 0 8px var(--neon), 0 0 16px var(--neon);
+      margin: 0;
+    }
+    header .brand p { font-size: 1rem; color: var(--muted); margin: 0; }
+
+    /* Nav menu */
+    .menu {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+      transition: max-height .3s ease;
+    }
+    .menu a {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: #111;
+      border: 1px solid rgba(0,255,102,0.2);
+      color: var(--neon);
+      transition: .2s;
+    }
+    .menu a:hover { background: #0a0a0a; box-shadow: 0 0 8px var(--neon); }
+    .menu a.active {
+      background: var(--neon);
+      color: #000;
+      font-weight: bold;
+      text-shadow: 0 0 4px #000;
+    }
+    .menu-toggle {
+      display: none;
+      background: none;
+      color: var(--neon);
+      font-size: 2rem;
+      border: none;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    @media (max-width: 700px) {
+      .menu { flex-direction: column; align-items: center; max-height: 0; overflow: hidden; }
+      .menu.open { max-height: 500px; }
+      .menu-toggle { display: block; }
+    }
+
+    /* ---------------- LAYOUT ---------------- */
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      display: grid;
+      grid-template-columns: 250px 1fr 250px;
+      gap: 18px;
+    }
+    .sidebar, .panel {
+      position: sticky;
+      top: 20px;
+      align-self: start;
+      background: #000;
+      border: 1px solid var(--neon);
+      border-radius: 12px;
+      padding: 12px;
+      color: var(--neon);
+    }
+    @media (max-width: 1100px) {
+      .container { grid-template-columns: 160px 1fr; }
+      .panel { display: none; }
+    }
+    @media (max-width: 700px) {
+      .container { grid-template-columns: 1fr; }
+      .sidebar, .panel { display: none; }
+    }
+
+    /* ---------------- CARDS ---------------- */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 12px;
+      background: #000;
+      border: 1px solid rgba(0,255,102,0.12);
+      position: relative;
+    }
+    .card img.avatar {
+      width: 20px;
+      border-radius: 8px;
+      object-fit: cover;
+      float: left;
+      margin-right: 10px; /* Optional: adds space between the image and surrounding content */
+    }
+    .card-title {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: var(--neon);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-desc {
+      font-size: 1rem;
+      color: var(--neon);
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+    }
+    .actions button {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.03);
+      color: var(--neon);
+      padding: 4px 6px;
+      border-radius: 6px;
+      font-size: .8rem;
+      margin-right: 4px;
+    }
+    .actions button:hover { border-color: var(--accent); color: var(--accent); }
+    .card.pinned {
+      border: 2px solid #00ff66;
+      animation: pinnedGlow 2s infinite;
+    }
+    @keyframes pinnedGlow {
+      0%, 100% { box-shadow: 0 0 10px #00ff66; transform: scale(1); }
+      50% { box-shadow: 0 0 20px #00ff66; transform: scale(1.02); }
+    }
+    .featured-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: var(--accent);
+      color: #000;
+      font-size: 0.8rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .blog-card {
+      background: #1a2a1a;
+      border: 2px solid var(--neon);
+      box-shadow: 0 0 10px var(--neon);
+    }
+    .thumbnail-error {
+      color: var(--accent);
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+
+    /* ---------------- FOOTER ---------------- */
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--muted);
+      border-top: 2px solid var(--neon);
+      margin-top: 20px;
+    }
+
+    /* Controls wrapper */
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+    }
+
+    /* Search input */
+    #searchInput {
+      flex: 1;
+      min-width: 220px;
+      max-width: 400px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 2px solid var(--neon);
+      background: #000;
+      color: var(--neon);
+      font-size: 1rem;
+      outline: none;
+      box-shadow: 0 0 6px var(--neon);
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    #searchInput:focus {
+      border-color: #0f0;
+      box-shadow: 0 0 12px #0f0, 0 0 20px var(--neon);
+    }
+
+    /* Category select */
+    #categorySelect {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 2px solid var(--neon);
+      background: #000;
+      color: var(--neon);
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 0 6px var(--neon);
+    }
+    #categorySelect:focus {
+      border-color: #0f0;
+      box-shadow: 0 0 12px #0f0;
+    }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      margin-top: 12px;
+    }
+    .pagination button {
+      margin: 0 6px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--neon);
+      background: #111;
+      color: var(--neon);
+      cursor: pointer;
+      transition: background .25s;
+    }
+    .pagination button:hover { background: var(--neon); color: #111; }
+    .pagination button[disabled] { background: #333; color: #777; cursor: default; }
+
+    /* Floating buttons */
+    #installBtn {
+      position: fixed;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: none;
+      color: #fff;
+      right: 18px;
+      bottom: 18px;
+      background: var(--accent);
+      display: none;
+    }
+
+    /* Sidebar container */
+    .sidebar {
+      position: sticky;
+      top: 0;
+      left: 0;
+      width: 220px;
+      height: 100vh;
+      background: #000;
+      border-right: 2px solid var(--neon);
+      padding-top: 80px;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+    }
+
+    /* Tabs list */
+    .list-tabs {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* Tab items */
+    .list-tab {
+      padding: 12px 16px;
+      cursor: pointer;
+      color: var(--neon);
+      background: #111;
+      border-left: 4px solid transparent;
+      transition: all 0.2s;
+    }
+    .list-tab:hover {
+      background: #1a1a1a;
+      border-left: 4px solid var(--neon);
+    }
+    .list-tab.active {
+      background: var(--neon);
+      color: #000;
+      font-weight: bold;
+      border-left: 4px solid #0f0;
+      box-shadow: 0 0 8px var(--neon);
+    }
+
+    /* Push main content aside */
+    .main-content {
+      margin-left: 5px;
+      padding: 5px;
+    }
+
+    /* Virtual Link Modal */
+    #virtualLinkModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      color: var(--neon);
+      z-index: 9999;
+      overflow: auto;
+    }
+    #virtualLinkModal .modal-content {
+      max-width: 900px;
+      width: 90%;
+      margin: 40px auto;
+      padding: 20px;
+      background: #111;
+      border-radius: 12px;
+      position: relative;
+    }
+    #virtualLinkModal img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    #virtualLinkModal iframe {
+      width: 100%;
+      height: 300px;
+      border: 0;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    #virtualLinkModal .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    #virtualLinkModal .thumbnail-error {
+      color: var(--accent);
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 600px) {
+      #virtualLinkModal .modal-content {
+        width: 95%;
+        padding: 15px;
+      }
+      #virtualLinkModal iframe {
+        height: 200px;
+      }
+    }
+  </style>
+</head>
+<body class="dark">
+  <header id="header">
+    <div class="brand">
+      <img style="width:200px;height:auto;" src="icons/joes-list-logo.png" alt="Joe's List Logo" />
+      <p>Explore Cool Websites, Videos, Shopping, Blogs, News, Images, AI</p>
+    </div>
+    <!-- Search + Category Controls -->
+    <div class="controls">
+      <form id="searchForm" onsubmit="return false;">
+        <input type="text" id="searchInput" placeholder="Search Joe's List..." aria-label="Search items" />
+      </form>
+      <select id="categorySelect" aria-label="Filter by category">
+        <option value="All">All</option>
+        <!-- Populated dynamically from JSON -->
+      </select>
+    </div>
+    <!-- Nav menu -->
+    <nav id="nav" class="menu">
+      <a href="#" class="nav-item active" data-tab="cool"><i data-feather="home"></i> Home</a>
+      <a href="#" class="nav-item" data-tab="videos"><i data-feather="video"></i> Videos</a>
+      <a href="#" class="nav-item" data-tab="shopping"><i data-feather="shopping-cart"></i> Shopping</a>
+      <a href="#" class="nav-item" data-tab="blogs"><i data-feather="book"></i> Blogs</a>
+      <a href="#" class="nav-item" data-tab="news"><i data-feather="rss"></i> News</a>
+      <a href="#" class="nav-item" data-tab="images"><i data-feather="image"></i> Images</a>
+      <a href="#" class="nav-item" data-tab="ai"><i data-feather="cpu"></i> AI</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <!-- LEFT: categories & bookmarks -->
+    <aside class="sidebar">
+    <img src="icons/over-one-million-links.png" />
+      <h2>User Menu</h2>
+      <ul class="list-tabs" id="list-tabs">
+        <li class="list-tab active" data-type="cool" onclick="switchTab('profile')">Profile</li>
+        <li class="list-tab" data-type="videos" onclick="switchTab('notifications')">Notifications</li>
+        <li class="list-tab" data-type="shopping" onclick="switchTab('store')">My Products</li>
+        <li class="list-tab" data-type="blogs" onclick="switchTab('activity')">My Activity</li>
+        <li class="list-tab" data-type="news" onclick="switchTab('login')">Login</li>
+        <li class="list-tab" data-type="images" onclick="switchTab('register')">Register</li>
+        <li class="list-tab" data-type="ai" onclick="switchTab('widgets')">Widgets</li>
+      </ul>
+      <hr style="border:none;height:1px;background:rgba(255,255,255,0.02);margin:10px 0">
+      <div class="muted">Bookmarks</div>
+      <div id="bookmarkList" style="margin-top:8px"></div>
+      
+    </aside>
+
+    <!-- CENTER: search + feed -->
+    <main class="main-content">
+      <div id="neon-widget"></div>
+      <script src="https://joeslist.neocities.org/widget.js"></script>
+      <div id="galleryContainer">
+        <div id="gallery" class="grid"></div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </main>
+
+    <!-- RIGHT: popular & wishlist -->
+    <aside class="panel">
+      <h2>Most Popular</h2>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <select id="popularCategory" style="width:50%;flex:1;padding:6px;border-radius:6px;background:#000;border:1px solid rgba(255,255,255,0.03);color:#00ff66;" aria-label="Filter popular by category"></select>
+        <button onclick="refreshPopular()" aria-label="Refresh popular items">Refresh</button>
+      </div>
+      <ul id="popularList" style="list-style:none;padding:0;margin:0"></ul>
+      <hr style="border:none;height:1px;margin:10px 0">
+      <div class="muted">Wishlist (products)</div>
+      <div id="wishlistList" style="margin-top:8px"></div>
+      <div id="neon-widget-sidebar"></div>
+      <script src="https://joeslist.neocities.org/widget2.js"></script>
+    </aside>
+  </div>
+
+  <!-- Virtual Link Modal -->
+  <div id="virtualLinkModal" style="display:none;">
+    <div class="modal-content">
+      <button id="vlCloseBtn" style="position:absolute;top:10px;right:10px;font-size:1.5rem;background:none;border:none;color:var(--neon);cursor:pointer;" aria-label="Close modal">✖</button>
+      <h2 id="vlTitle"></h2>
+      <div id="vlMeta" style="margin-bottom:12px;color:#aaa;"></div>
+      <div id="vlMedia" style="margin-top:12px;"></div>
+      <div id="vlContent" style="margin-top:12px;"></div>
+      <div class="actions">
+        <button id="vlPinBtn" aria-label="Pin item">📌 Pin</button>
+        <button id="vlBookmarkBtn" aria-label="Bookmark item">⭐ Bookmark</button>
+        <button id="vlShareBtn" aria-label="Share item">🔄 Share</button>
+        <button id="vlCommentBtn" aria-label="Add comment">💬 Comment</button>
+        <button id="vlOpenLinkBtn" style="display:none;" aria-label="Open link in new tab">🔗 Open Link</button>
+      </div>
+      <div id="vlComments" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="brand">
+      Copyright &copy; <span id="currentYear"></span> JOE'S LIST. All rights reserved. DESIGNED BY SURFZILLA.APP
+    </div>
+    <script>
+      document.getElementById("currentYear").textContent = new Date().getFullYear();
+    </script>
+  </footer>
+
+  <script>
+    /* ========= Joe's List — Microblog Platform JS =========
+       - Handles: tabs/nav, JSON data loading, search, categories
+       - Pins, Bookmarks, Wishlist (only for products)
+       - Click tracking, Popular list, Pagination, Schema injection
+       - Unified virtual link modal for all data types
+       - Uses raw thumbnail URLs from JSON
+       - Supports og_title, og_description, og_image as fallbacks
+       - Includes DOMPurify for HTML sanitization
+    ====================================================== */
+
+    /* ------------------------- CONFIG + STATE ------------------------- */
+    const TABS = {
+      cool: 'sites.json',
+      videos: 'videos.json',
+      shopping: 'shopping.json',
+      blogs: 'blogs.json',
+      news: 'news.json',
+      images: 'images.json',
+      ai: 'ai.json'
+    };
+
+    let currentType = 'cool';
+    let items = [];
+    let currentPage = 1;
+    const perPage = 12;
+    let activeCategory = 'All';
+    let searchQuery = '';
+    let searchTimeout = null;
+
+    /* Persistence keys */
+    const KEY_CLICKS = 'joe_clicks';
+    const KEY_BOOKMARKS = 'joe_bookmarks';
+    const KEY_WISHLIST = 'joe_wishlist';
+    const KEY_PINNED = 'joe_pinned';
+    const KEY_COMMENTS = 'joe_comments';
+
+    let clicks = JSON.parse(localStorage.getItem(KEY_CLICKS) || '{}');
+    let bookmarks = JSON.parse(localStorage.getItem(KEY_BOOKMARKS) || '{}');
+    let wishlist = JSON.parse(localStorage.getItem(KEY_WISHLIST) || '{}');
+    let pinned = JSON.parse(localStorage.getItem(KEY_PINNED) || '{}');
+    let comments = JSON.parse(localStorage.getItem(KEY_COMMENTS) || '{}');
+
+    /* ------------------------- UTILS ------------------------- */
+    function saveClicks() { localStorage.setItem(KEY_CLICKS, JSON.stringify(clicks)); }
+    function saveBookmarks() { localStorage.setItem(KEY_BOOKMARKS, JSON.stringify(bookmarks)); }
+    function saveWishlist() { localStorage.setItem(KEY_WISHLIST, JSON.stringify(wishlist)); }
+    function savePinned() { localStorage.setItem(KEY_PINNED, JSON.stringify(pinned)); }
+    function saveComments() { localStorage.setItem(KEY_COMMENTS, JSON.stringify(comments)); }
+
+    function escapeHtml(s) {
+      return (s || '').toString()
+        .replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    }
+
+    function extractHostname(url) {
+      try { return new URL(url).hostname; } catch (e) { return url || ''; }
+    }
+
+    function extractYouTubeId(url) {
+      try {
+        const u = new URL(url);
+        if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
+        if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+      } catch (e) {}
+      return null;
+    }
+
+    function isValidUrl(url) {
+      return url && url !== '#' && url.match(/^https?:\/\//);
+    }
+
+    function getThumbnailUrl(item) {
+      const thumbnail = (item.thumbnail && item.thumbnail.trim() !== '') ? item.thumbnail :
+                        (item.image && item.image.trim() !== '') ? item.image :
+                        (item.og_image && item.og_image.trim() !== '') ? item.og_image :
+                        '/icons/joeslist-192.png';
+      console.log('Thumbnail URL for', item.url || item.id, ':', thumbnail);
+      return thumbnail;
+    }
+
+    function getModalThumbnailUrl(item) {
+      const thumbnail = (item.thumbnail && item.thumbnail.trim() !== '') ? item.thumbnail :
+                        (item.image && item.image.trim() !== '') ? item.image :
+                        (item.og_image && item.og_image.trim() !== '') ? item.og_image :
+                        '/icons/joeslist-192.png';
+      console.log('Modal Thumbnail URL for', item.url || item.id, ':', thumbnail);
+      return thumbnail;
+    }
+
+    /* ------------------------- FETCH & LOAD ------------------------- */
+    async function loadItemsFor(type) {
+      const url = TABS[type];
+      if (!url) {
+        console.warn('No tab url for', type);
+        const gallery = document.getElementById('gallery');
+        if (gallery) {
+          gallery.innerHTML = `<div style="padding:18px" class="muted">No data available for this tab.</div>`;
+        }
+        return;
+      }
+      try {
+        const res = await fetch('/' + url + '?t=' + Date.now());
+        if (!res.ok) throw new Error('fetch failed ' + res.status);
+        items = await res.json();
+        // Merge stored comments into items
+        items.forEach(item => {
+          if (comments[item.id || item.url]) item.comments = comments[item.id || item.url];
+        });
+      } catch (err) {
+        console.error('loadItemsFor error', err);
+        items = [];
+        const gallery = document.getElementById('gallery');
+        if (gallery) {
+          gallery.innerHTML = `<div style="padding:18px" class="muted">Failed to load items. Please try again later.</div>`;
+        }
+      }
+      currentType = type;
+      currentPage = 1;
+      activeCategory = 'All';
+      renderCategorySelect();
+      renderPage();
+    }
+
+    /* ------------------------- CATEGORY SELECT ------------------------- */
+    function renderCategorySelect() {
+      const catsNode = document.getElementById('categorySelect');
+      const popularCatNode = document.getElementById('popularCategory');
+      const cats = ['All', ...new Set((items || []).map(i => i.category).filter(Boolean))];
+      if (catsNode) catsNode.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+      if (popularCatNode) popularCatNode.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    }
+
+    function setCategory(value) {
+      activeCategory = value;
+      currentPage = 1;
+      renderPage();
+    }
+
+    /* ------------------------- RENDER / PAGINATION ------------------------- */
+    function renderPage() {
+      const gallery = document.getElementById('gallery');
+      if (!gallery) return console.warn('No #gallery element found');
+
+      let filtered = (activeCategory === 'All') ? items.slice() : items.filter(i => i.category === activeCategory);
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(i => (i.title || i.og_title || '').toLowerCase().includes(q) || (i.description || i.snippet || i.og_description || '').toLowerCase().includes(q));
+      }
+      filtered = filtered.filter(i => !i._comment);
+
+      // Sort featured items first, then pinned items
+      filtered.sort((a, b) => {
+        const aFeatured = !!a.featured ? 1 : 0;
+        const bFeatured = !!b.featured ? 1 : 0;
+        const aPinned = pinned[a.id || a.url] ? 1 : 0;
+        const bPinned = pinned[b.id || b.url] ? 1 : 0;
+        return bFeatured - aFeatured || bPinned - aPinned;
+      });
+
+      const total = filtered.length;
+      const start = (currentPage - 1) * perPage;
+      const pageItems = filtered.slice(start, start + perPage);
+
+      gallery.innerHTML = pageItems.map((it, idx) => renderItem(it, start + idx)).join('') || `<div style="padding:18px" class="muted">No items.</div>`;
+
+      renderPagination(total);
+      renderBookmarksList();
+      renderWishlistList();
+      renderPopular();
+      injectSchemaFor(filtered, currentType);
+    }
+
+   /* Consolidated renderItem function (Twitter-style card) */
+function renderItem(item, index) {
+  const title = item.title || item.og_title || 'Untitled';
+  const desc = item.snippet || item.description || item.og_description || '';
+  const url = item.url || '#';
+  const id = item.id || url;
+  const domain = url !== '#' ? extractHostname(url) : '';
+  const thumb = getThumbnailUrl(item);
+  const meta = item.type ? item.type.toUpperCase() : (currentType || 'LINK');
+  const date = item.date ? new Date(item.date).toLocaleDateString() : '';
+  const isProduct = item.type === 'product';
+  const isImage = item.type === 'image';
+  const isFeatured = !!item.featured;
+  const pinnedCls = pinned[id] ? 'pinned' : '';
+
+  return `
+    <article class="card ${pinnedCls} ${isFeatured ? 'blog-card' : ''}" 
+             data-id="${escapeHtml(id)}" 
+             data-title="${escapeHtml(title)}" 
+             data-category="${escapeHtml(item.category || '')}" 
+             data-type="${escapeHtml(item.type || currentType)}"
+             style="border:1px solid #ddd;border-radius:0;padding:12px;margin-bottom:12px;">
+      
+      ${isFeatured ? `<div class="featured-badge">FEATURED</div>` : ''}
+
+      <div class="card-head" style="display:flex;align-items:flex-start;gap:12px;">
+        <!-- Avatar -->
+        <img class="avatar"
+             src="https://www.google.com/s2/favicons?domain=${escapeHtml(domain)}" 
+             alt="${escapeHtml(title)} avatar"
+             loading="lazy"
+             style="width:40px;height:40px;border-radius:50%;border:1px solid #ccc;flex-shrink:0;"
+             onerror="this.onerror=null;this.src='/icons/joeslist-192.png';" />
+
+        <!-- Post body -->
+        <div style="flex:1;min-width:0;">
+          <!-- Username / title -->
+          <a href="#" class="js-open card-title" data-id="${escapeHtml(id)}"
+             title="${escapeHtml(title)}"
+             style="font-weight:600;font-size:1rem;color:#00ff66;text-decoration:none;display:inline-block;">
+            ${escapeHtml(title)}
+          </a>
+
+          <!-- Meta info -->
+          <div class="card-meta muted" style="font-size:.85rem;color:#fff;margin-top:2px;">
+            ${escapeHtml(item.category || meta)}${date ? ' • ' + escapeHtml(date) : ''}${domain ? ' • ' + escapeHtml(domain) : ''}
+          </div>
+
+          <!-- Description -->
+          <div class="card-desc" style="margin-top:6px;line-height:1.4;color:#00ff66;">
+            ${escapeHtml(desc)}
+          </div>
+
+          <!-- Thumbnail preview -->
+          ${thumb ? `
+          <div class="card-thumb" style="margin-top:8px;border:1px solid #ddd;">
+            <img src="${escapeHtml(thumb)}"
+                 alt="${escapeHtml(title)} preview"
+                 style="width:100%;height:auto;display:block;"
+                 loading="lazy"
+                 onerror="this.style.display='none';" />
+          </div>` : ''}
+
+          <!-- Actions -->
+          <div class="actions" style="margin-top:10px;display:flex;flex-wrap:wrap;border-top:1px solid #ddd;border-bottom:1px solid #ddd;">
+            <button class="btn-pin" data-id="${escapeHtml(id)}"
+                    style="flex:1;border:0;border-right:1px solid #ddd;padding:6px 0;background:none;cursor:pointer;"
+                    aria-label="${pinned[id] ? 'Unpin' : 'Pin'} item">📌 ${pinned[id] ? 'Unpin' : 'Pin'}</button>
+
+            <button class="btn-open" data-id="${escapeHtml(id)}"
+                    style="flex:1;border:0;border-right:1px solid #ddd;padding:6px 0;background:none;cursor:pointer;"
+                    aria-label="Open link">🔗 Open</button>
+
+            <button class="btn-bookmark" data-id="${escapeHtml(id)}"
+                    style="flex:1;border:0;border-right:1px solid #ddd;padding:6px 0;background:none;cursor:pointer;"
+                    aria-label="${bookmarks[id] ? 'Remove bookmark' : 'Bookmark'} item">⭐ ${bookmarks[id] ? 'Bookmarked' : 'Bookmark'}</button>
+
+            <button class="btn-wishlist" data-id="${escapeHtml(id)}"
+                    style="flex:1;border:0;border-right:1px solid #ddd;padding:6px 0;background:none;cursor:pointer;${isProduct ? '' : 'display:none;'}"
+                    aria-label="${wishlist[id] ? 'Remove from wishlist' : 'Add to wishlist'}">🛒 ${wishlist[id] ? 'In Wishlist' : 'Wishlist'}</button>
+
+            <button class="btn-share" data-id="${escapeHtml(id)}"
+                    data-title="${escapeHtml(title)}"
+                    data-image="${escapeHtml(thumb)}"
+                    data-description="${escapeHtml(desc)}"
+                    style="flex:1;border:0;border-right:1px solid #ddd;padding:6px 0;background:none;cursor:pointer;"
+                    aria-label="Share item">🔄 Share</button>
+
+            <button class="btn-email" data-id="${escapeHtml(id)}" data-title="${escapeHtml(title)}"
+                    style="flex:1;border:0;border-right:1px solid #ddd;padding:6px 0;background:none;cursor:pointer;"
+                    aria-label="Email link">✉️ Email</button>
+
+            <button class="btn-download" data-img="${escapeHtml(item.image || thumb)}"
+                    style="flex:1;border:0;padding:6px 0;background:none;cursor:pointer;${isImage ? '' : 'display:none;'}"
+                    aria-label="Download image">⬇️ Download</button>
+          </div>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+
+    /* ------------------------- RENDER HELPERS ------------------------- */
+    function renderMediaFor(item) {
+      const type = (item.type || '').toLowerCase();
+      if (type === 'video') {
+        const vid = extractYouTubeId(item.url || item.contentUrl || '');
+        if (vid) return `
+          <div class="video-container" style="margin-top:8px">
+            <iframe class="video-iframe card-media" 
+                    src="https://www.youtube.com/embed/${escapeHtml(vid)}" 
+                    loading="lazy" 
+                    style="width:100%;height:200px;border:0;border-radius:8px"
+                    title="${escapeHtml(item.title || item.og_title || 'Video')}"
+                    allowfullscreen>
+            </iframe>
+          </div>`;
+        return '';
+      }
+      if (type === 'image' || item.image || item.og_image) {
+        const src = escapeHtml(item.image || item.thumbnail || item.og_image || '');
+        return `<img class="card-media" src="${src}" 
+                    alt="${escapeHtml(item.title || item.og_title || 'image')}" 
+                    loading="lazy" 
+                    style="width:100%;height:160px;object-fit:cover;border-radius:8px;margin-top:8px">`;
+      }
+      if (type === 'product' && (item.image || item.og_image)) {
+        const src = escapeHtml(item.image || item.og_image);
+        return `<img class="card-media" src="${src}" 
+                    alt="${escapeHtml(item.title || item.og_title || 'product')}" 
+                    loading="lazy" 
+                    style="width:100%;height:160px;object-fit:cover;border-radius:8px;margin-top:8px">`;
+      }
+      if (type === 'blog' || type === 'article' || type === 'news') {
+        const src = escapeHtml(item.image || item.thumbnail || item.og_image || '');
+        return src ? `<img class="card-media" src="${src}" 
+                          alt="${escapeHtml(item.title || item.og_title || 'blog')}" 
+                          loading="lazy" 
+                          style="width:100%;height:160px;object-fit:cover;border-radius:8px;margin-top:8px">` : '';
+      }
+      return '';
+    }
+
+    /* ------------------------- EVENT DELEGATION ------------------------- */
+    (function attachDelegatedHandlers() {
+      const gallery = document.getElementById('gallery');
+      const root = gallery || document;
+      root.addEventListener('click', async function (e) {
+        const btn = e.target.closest('button, a');
+        if (!btn) return;
+
+        if (btn.matches('.js-open')) {
+          e.preventDefault();
+          const id = btn.dataset.id;
+          const item = items.find(i => i.id === id || i.url === id);
+          if (item) openVirtualLink(item);
+          return;
+        }
+
+        if (btn.matches('.btn-open')) {
+          const id = btn.dataset.id;
+          const item = items.find(i => i.id === id || i.url === id);
+          if (item) trackAndOpen(item.url || '#', item.title || item.og_title, item.category);
+          return;
+        }
+
+        if (btn.matches('.btn-pin')) {
+          const id = btn.dataset.id;
+          if (!id) return;
+          if (pinned[id]) delete pinned[id];
+          else pinned[id] = true;
+          savePinned();
+          document.querySelectorAll(`.btn-pin[data-id="${cssEscape(id)}"]`).forEach(b => {
+            b.textContent = pinned[id] ? '📌 Unpin' : '📌 Pin';
+            b.setAttribute('aria-label', pinned[id] ? 'Unpin item' : 'Pin item');
+          });
+          document.querySelectorAll(`.card[data-id="${cssEscape(id)}"]`).forEach(a => a.classList.toggle('pinned', !!pinned[id]));
+          renderPage();
+          return;
+        }
+
+        if (btn.matches('.btn-bookmark')) {
+          const id = btn.dataset.id;
+          const title = btn.closest('.card')?.dataset?.title || id;
+          if (bookmarks[id]) delete bookmarks[id];
+          else bookmarks[id] = { title, url: id };
+          saveBookmarks();
+          renderPage();
+          return;
+        }
+
+        if (btn.matches('.btn-wishlist')) {
+          const id = btn.dataset.id;
+          const title = btn.closest('.card')?.dataset?.title || id;
+          if (wishlist[id]) delete wishlist[id];
+          else wishlist[id] = { title, url: id };
+          saveWishlist();
+          renderPage();
+          return;
+        }
+
+        if (btn.matches('.btn-share')) {
+          const id = btn.dataset.id;
+          const title = btn.dataset.title || '';
+          const image = btn.dataset.image || '';
+          const description = btn.dataset.description || '';
+          const item = items.find(i => i.id === id || i.url === id);
+          const url = item?.url || id;
+          if (navigator.share) {
+            navigator.share({
+              title: title,
+              text: description,
+              url: url
+            }).catch(() => {});
+          } else if (navigator.clipboard) {
+            try {
+              navigator.clipboard.writeText(url).then(() => alert('Link copied to clipboard'));
+            } catch (e) {
+              prompt('Copy link:', url);
+            }
+          } else {
+            prompt('Copy link:', url);
+          }
+          return;
+        }
+
+        if (btn.matches('.btn-email')) {
+          const id = btn.dataset.id;
+          const title = btn.dataset.title || btn.closest('.card')?.dataset?.title || '';
+          const item = items.find(i => i.id === id || i.url === id);
+          const url = item?.url || id;
+          window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`;
+          return;
+        }
+
+        if (btn.matches('.btn-download')) {
+          const img = btn.dataset.img;
+          const title = btn.closest('.card')?.dataset?.title || 'download';
+          downloadImage(img, title);
+          return;
+        }
+      });
+    })();
+
+    function cssEscape(s) {
+        if (window.CSS && CSS.escape) return CSS.escape(s);
+        return s.replace(/([ #;?%&,.+*~\':"!^$[\]()=>|\\/])/g, '\\$1');
+    }
+
+    async function downloadImage(url, title = 'image') {
+      if (!url) return alert('No image URL');
+      try {
+        const res = await fetch(url, { mode: 'cors' });
+        if (!res.ok) throw new Error('fetch failed');
+        const blob = await res.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = (title || 'image').replace(/\s+/g, '_') + '.jpg';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(a.href);
+      } catch (err) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+    }
+
+    /* ------------------------- TRACKING / OPEN ------------------------- */
+    function trackClickFor(url, title, category) {
+      if (!url || url === '#') return;
+      if (!clicks[url]) clicks[url] = { count: 0, title: title || url, category: category || '' };
+      clicks[url].count++;
+      clicks[url].title = title || clicks[url].title;
+      clicks[url].category = category || clicks[url].category;
+      saveClicks();
+      renderPopular();
+    }
+
+    function trackAndOpen(url, title = '', category = '') {
+      trackClickFor(url, title, category);
+      try { window.open(url, '_blank', 'noopener'); } catch (e) { location.href = url; }
+    }
+
+    function refreshPopular() {
+      renderPopular();
+    }
+
+    /* ------------------------- BOOKMARKS / WISHLIST ------------------------- */
+    function renderBookmarksList() {
+      const node = document.getElementById('bookmarkList');
+      if (!node) return;
+      const vals = Object.values(bookmarks || {});
+      node.innerHTML = vals.length ? vals.map(b => `<div style="padding:6px 0"><a href="#" data-id="${escapeHtml(b.url)}" class="bookmark-link" aria-label="Open bookmark: ${escapeHtml(b.title)}">${escapeHtml(b.title)}</a></div>`).join('') : `<div class="muted">No bookmarks</div>`;
+      node.querySelectorAll('.bookmark-link').forEach(a => a.addEventListener('click', e => {
+        e.preventDefault();
+        const item = items.find(i => i.id === a.dataset.id || i.url === a.dataset.id);
+        if (item) openVirtualLink(item);
+      }));
+    }
+
+    function renderWishlistList() {
+      const node = document.getElementById('wishlistList');
+      if (!node) return;
+      const vals = Object.values(wishlist || {});
+      node.innerHTML = vals.length ? vals.map(w => `<div style="padding:6px 0">${escapeHtml(w.title)}</div>`).join('') : `<div class="muted">No wishlist items</div>`;
+    }
+
+    /* ------------------------- POPULAR ------------------------- */
+    function renderPopular() {
+      const sel = document.getElementById('popularCategory');
+      const cat = sel ? sel.value : 'All';
+      const arr = Object.entries(clicks || {}).map(([url, info]) => ({ url, title: info.title, category: info.category, count: info.count }));
+      const filtered = (cat === 'All') ? arr : arr.filter(i => i.category === cat);
+      filtered.sort((a, b) => b.count - a.count);
+      const list = filtered.slice(0, 12);
+      const ul = document.getElementById('popularList');
+      if (!ul) return;
+      ul.innerHTML = list.length ? list.map(i => `<li style="padding:8px 6px;border-bottom:1px solid rgba(255,255,255,0.1)"><a href="#" class="popular-link" data-id="${escapeHtml(i.url)}">${escapeHtml(i.title)}</a> <span class="muted">(${i.count})</span></li>`).join('') : `<li class="muted">No clicks yet</li>`;
+      ul.querySelectorAll('.popular-link').forEach(a => a.addEventListener('click', e => {
+        e.preventDefault();
+        const item = items.find(i => i.id === a.dataset.id || i.url === a.dataset.id);
+        if (item) openVirtualLink(item);
+      }));
+    }
+
+    /* ------------------------- PAGINATION ------------------------- */
+    function renderPagination(total) {
+      const pagination = document.getElementById('pagination');
+      if (!pagination) return;
+      pagination.innerHTML = '';
+      const totalPages = Math.max(1, Math.ceil(total / perPage));
+      const prev = document.createElement('button');
+      prev.textContent = 'Prev';
+      prev.disabled = currentPage <= 1;
+      prev.setAttribute('aria-label', 'Previous page');
+      prev.addEventListener('click', () => { currentPage = Math.max(1, currentPage - 1); renderPage(); });
+      pagination.appendChild(prev);
+
+      const pagesToShow = 5;
+      let startPage = Math.max(1, currentPage - Math.floor(pagesToShow / 2));
+      let endPage = Math.min(totalPages, startPage + pagesToShow - 1);
+      if (endPage - startPage < pagesToShow - 1) {
+        const diff = (pagesToShow - 1) - (endPage - startPage);
+        startPage = Math.max(1, startPage - diff);
+      }
+
+      if (startPage > 1) {
+        const first = document.createElement('button');
+        first.textContent = '1';
+        first.setAttribute('aria-label', 'Go to page 1');
+        first.addEventListener('click', () => { currentPage = 1; renderPage(); });
+        pagination.appendChild(first);
+        if (startPage > 2) pagination.appendChild(document.createTextNode(' ... '));
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.disabled = i === currentPage;
+        btn.setAttribute('aria-label', `Go to page ${i}`);
+        btn.addEventListener('click', () => { currentPage = i; renderPage(); });
+        pagination.appendChild(btn);
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) pagination.appendChild(document.createTextNode(' ... '));
+        const last = document.createElement('button');
+        last.textContent = totalPages;
+        last.setAttribute('aria-label', `Go to page ${totalPages}`);
+        last.addEventListener('click', () => { currentPage = totalPages; renderPage(); });
+        pagination.appendChild(last);
+      }
+
+      const next = document.createElement('button');
+      next.textContent = 'Next';
+      next.disabled = currentPage >= totalPages;
+      next.setAttribute('aria-label', 'Next page');
+      next.addEventListener('click', () => { currentPage = Math.min(totalPages, currentPage + 1); renderPage(); });
+      pagination.appendChild(next);
+    }
+
+    /* ------------------------- SCHEMA (JSON-LD) ------------------------- */
+    function injectSchemaFor(arr, tabType) {
+      document.querySelectorAll('script[data-joes-schema]').forEach(s => s.remove());
+      const schema = {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": tabType || "Joe's List",
+        "itemListElement": []
+      };
+
+      (arr || []).forEach((i, idx) => {
+        let itemSchema = { "@type": "ListItem", "position": idx + 1, "url": i.url || '#', "name": i.title || i.og_title };
+        const t = (i.type || '').toLowerCase();
+        if (t === 'product') {
+          itemSchema = {
+            "@type": "Product",
+            "name": i.title || i.og_title,
+            "description": i.description || i.snippet || i.og_description,
+            "url": i.url || '#',
+            "image": i.image || i.thumbnail || i.og_image || '',
+            "offers": { "@type": "Offer", "url": i.url || '#', "priceCurrency": "USD", "availability": "https://schema.org/InStock" }
+          };
+        } else if (t === 'video') {
+          itemSchema = {
+            "@type": "VideoObject",
+            "name": i.title || i.og_title,
+            "description": i.description || i.snippet || i.og_description,
+            "thumbnailUrl": [i.thumbnail || i.image || i.og_image || ''],
+            "uploadDate": new Date().toISOString(),
+            "contentUrl": i.url || '#',
+            "embedUrl": i.url || '#'
+          };
+        } else if (t === 'article' || t === 'news' || t === 'blog') {
+          itemSchema = {
+            "@type": "Article",
+            "headline": i.title || i.og_title,
+            "description": i.description || i.snippet || i.og_description,
+            "url": i.url || '#',
+            "image": i.image || i.thumbnail || i.og_image || '',
+            "author": { "@type": "Organization", "name": "Joe's List" },
+            "publisher": { "@type": "Organization", "name": "Joe's List", "logo": { "@type": "ImageObject", "url": "/icons/joes-list-logo.png" } },
+            "datePublished": new Date().toISOString()
+          };
+        }
+        schema.itemListElement.push(itemSchema);
+      });
+
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.dataset.joesSchema = 'true';
+      script.textContent = JSON.stringify(schema, null, 2);
+      document.head.appendChild(script);
+    }
+
+    /* ------------------------- SEARCH & CATEGORY UI HOOKS ------------------------- */
+    (function uiHooks() {
+      const s = document.getElementById('searchInput');
+      if (s) {
+        s.addEventListener('input', e => {
+          searchQuery = (e.target.value || '').toLowerCase();
+          if (searchTimeout) clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => { currentPage = 1; renderPage(); }, 250);
+        });
+      }
+
+      const cat = document.getElementById('categorySelect');
+      if (cat) {
+        cat.addEventListener('change', e => { activeCategory = e.target.value; currentPage = 1; renderPage(); });
+      }
+
+      const popCat = document.getElementById('popularCategory');
+      if (popCat) {
+        popCat.addEventListener('change', () => renderPopular());
+      }
+    })();
+
+    /* ------------------------- NAV / TAB SWITCHING ------------------------- */
+    (function navHooks() {
+      function activateTab(type) {
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.tab === type));
+        document.querySelectorAll('.list-tab').forEach(el => el.classList.toggle('active', el.dataset.type === type));
+        loadItemsFor(type);
+      }
+
+      document.querySelectorAll('.nav-item').forEach(link => {
+        link.addEventListener('click', e => {
+          e.preventDefault();
+          const t = link.dataset.tab;
+          if (t) activateTab(t);
+        });
+      });
+
+      document.querySelectorAll('.list-tab').forEach(tab => {
+        tab.addEventListener('click', e => {
+          e.preventDefault();
+          const t = tab.dataset.type;
+          if (t) activateTab(t);
+        });
+      });
+    })();
+
+    /* ------------------------- SIDEBAR USER MENU ------------------------- */
+    function switchTab(section) {
+      console.log(`Switching to user section: ${section}`);
+      alert(`Coming soon: ${section} panel`);
+    }
+
+    /* ------------------------- VIRTUAL MODAL ------------------------- */
+    let currentVL = null;
+
+    function openVirtualLink(item) {
+      if (!item) return;
+      currentVL = item;
+      const id = item.id || item.url || '#';
+      document.getElementById('vlTitle').textContent = item.title || item.og_title || 'Untitled';
+      document.getElementById('vlMeta').textContent = `ID: ${escapeHtml(item.id || 'N/A')} | Category: ${escapeHtml(item.category || 'N/A')} | ${item.date ? new Date(item.date).toLocaleDateString() : ''}`;
+      document.getElementById('vlContent').innerHTML = item.content ? DOMPurify.sanitize(item.content) : (item.description || item.snippet || item.og_description || '');
+      const media = document.getElementById('vlMedia');
+      media.innerHTML = renderMediaFor(item) || ((item.thumbnail || item.image || item.og_image) ? `<img src="${escapeHtml(getModalThumbnailUrl(item))}" alt="${escapeHtml(item.title || item.og_title || 'thumbnail')}" onerror="this.onerror=null;this.src='/icons/joeslist-192.png';this.parentElement.insertBefore(document.createElement('div'), this).textContent='Thumbnail failed to load';this.parentElement.querySelector('div').className='thumbnail-error';">` : '');
+
+      document.getElementById('vlPinBtn').textContent = pinned[id] ? '📌 Unpin' : '📌 Pin';
+      document.getElementById('vlPinBtn').setAttribute('aria-label', pinned[id] ? 'Unpin item' : 'Pin item');
+      document.getElementById('vlBookmarkBtn').textContent = bookmarks[id] ? '⭐ Bookmarked' : '⭐ Bookmark';
+      document.getElementById('vlBookmarkBtn').setAttribute('aria-label', bookmarks[id] ? 'Remove bookmark' : 'Bookmark item');
+      const openLinkBtn = document.getElementById('vlOpenLinkBtn');
+      openLinkBtn.style.display = item.url && item.url !== '#' ? 'block' : 'none';
+      openLinkBtn.dataset.url = item.url || '#';
+
+      const commentsNode = document.getElementById('vlComments');
+      commentsNode.innerHTML = (item.comments || []).map(c => `<div style="padding:4px 0;border-top:1px solid rgba(255,255,255,0.1)">${escapeHtml(c)}</div>`).join('');
+
+      document.getElementById('virtualLinkModal').style.display = 'block';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('vlCloseBtn').addEventListener('click', () => {
+        document.getElementById('virtualLinkModal').style.display = 'none';
+        currentVL = null;
+      });
+
+      document.getElementById('vlPinBtn').addEventListener('click', () => {
+        if (!currentVL) return;
+        const id = currentVL.id || currentVL.url;
+        if (pinned[id]) delete pinned[id];
+        else pinned[id] = true;
+        savePinned();
+        document.getElementById('vlPinBtn').textContent = pinned[id] ? '📌 Unpin' : '📌 Pin';
+        document.getElementById('vlPinBtn').setAttribute('aria-label', pinned[id] ? 'Unpin item' : 'Pin item');
+        renderPage();
+      });
+
+      document.getElementById('vlBookmarkBtn').addEventListener('click', () => {
+        if (!currentVL) return;
+        const id = currentVL.id || currentVL.url;
+        const title = currentVL.title || currentVL.og_title || id;
+        if (bookmarks[id]) delete bookmarks[id];
+        else bookmarks[id] = { title, url: id };
+        saveBookmarks();
+        document.getElementById('vlBookmarkBtn').textContent = bookmarks[id] ? '⭐ Bookmarked' : '⭐ Bookmark';
+        document.getElementById('vlBookmarkBtn').setAttribute('aria-label', bookmarks[id] ? 'Remove bookmark' : 'Bookmark item');
+        renderBookmarksList();
+      });
+
+      document.getElementById('vlShareBtn').addEventListener('click', () => {
+        if (!currentVL) return;
+        const url = currentVL.url || '#';
+        const title = currentVL.title || currentVL.og_title || '';
+        const description = currentVL.description || currentVL.snippet || currentVL.og_description || '';
+        if (navigator.share) {
+          navigator.share({
+            title: title,
+            text: description,
+            url: url
+          }).catch(() => {});
+        } else if (navigator.clipboard) {
+          navigator.clipboard.writeText(url).then(() => alert('Link copied!'));
+        } else {
+          prompt('Copy link:', url);
+        }
+      });
+
+      document.getElementById('vlCommentBtn').addEventListener('click', () => {
+        if (!currentVL) return;
+        const comment = prompt('Leave a comment:');
+        if (comment) {
+          const id = currentVL.id || currentVL.url;
+          currentVL.comments = currentVL.comments || [];
+          currentVL.comments.push(comment);
+          comments[id] = currentVL.comments;
+          saveComments();
+          const commentsNode = document.getElementById('vlComments');
+          commentsNode.innerHTML = currentVL.comments.map(c => `<div style="padding:4px 0;border-top:1px solid rgba(255,255,255,0.1)">${escapeHtml(c)}</div>`).join('');
+        }
+      });
+
+      document.getElementById('vlOpenLinkBtn').addEventListener('click', () => {
+        if (!currentVL) return;
+        const url = currentVL.url || '#';
+        trackAndOpen(url, currentVL.title || currentVL.og_title, currentVL.category);
+      });
+    });
+
+    /* ------------------------- INITIALIZE ------------------------- */
+    (function init() {
+      try { loadItemsFor(currentType); } catch (e) { console.error(e); }
+      renderBookmarksList();
+      renderWishlistList();
+      renderPopular();
+    })();
+  </script>
+</body>
+</html>

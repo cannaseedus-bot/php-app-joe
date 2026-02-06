@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1200,initial-scale=0.40" />
+  <title>Joe's List - Microblog Platform</title>
+  <meta name="description" content="Joe's List - A microblog platform to explore curated websites, videos, shopping, blogs, news, images, and AI content." />
+  <meta name="theme-color" content="#000000" />
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/joeslist-192.png">
+  <!-- Dynamic OG tags will be injected here -->
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://joeslist.neocities.org/" />
+
+  <!-- DOMPurify for HTML sanitization -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.7/purify.min.js"></script>
+  <!-- Feather Icons for nav and card actions -->
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <style>
+    :root {
+      --accent: #e74c3c;
+      --neon: #00ff66;
+      --bg: #0f1113;
+      --card: #111217;
+      --muted: #9be09b;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--neon);
+    }
+
+    a { text-decoration: none; color: var(--neon); }
+    button { font: inherit; cursor: pointer; }
+
+    /* ---------------- HEADER ---------------- */
+    header {
+      background: #000;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 2px solid var(--neon);
+    }
+    header .brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    header .brand img { width: 64px; height: 64px; }
+    header .brand h1 {
+      font-size: 2rem;
+      color: var(--neon);
+      text-shadow: 0 0 8px var(--neon), 0 0 16px var(--neon);
+      margin: 0;
+    }
+    header .brand p { font-size: 1rem; color: var(--muted); margin: 0; }
+
+    .menu {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+      transition: max-height .3s ease;
+    }
+    .menu a {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: #111;
+      border: 1px solid rgba(0,255,102,0.2);
+      color: var(--neon);
+      transition: .2s;
+    }
+    .menu a:hover { background: #0a0a0a; box-shadow: 0 0 8px var(--neon); }
+    .menu a.active {
+      background: var(--neon);
+      color: #000;
+      font-weight: bold;
+      text-shadow: 0 0 4px #000;
+    }
+    .menu-toggle {
+      display: none;
+      background: none;
+      color: var(--neon);
+      font-size: 2rem;
+      border: none;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    @media (max-width: 700px) {
+      .menu { flex-direction: column; align-items: center; max-height: 0; overflow: hidden; }
+      .menu.open { max-height: 500px; }
+      .menu-toggle { display: block; }
+    }
+
+    /* ---------------- LAYOUT ---------------- */
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      display: grid;
+      grid-template-columns: 250px 1fr 250px;
+      gap: 18px;
+    }
+    .sidebar, .panel {
+      position: sticky;
+      top: 20px;
+      align-self: start;
+      background: #000;
+      border: 1px solid var(--neon);
+      border-radius: 12px;
+      padding: 12px;
+      color: var(--neon);
+    }
+    @media (max-width: 1100px) {
+      .container { grid-template-columns: 160px 1fr; }
+      .panel { display: none; }
+    }
+    @media (max-width: 700px) {
+      .container { grid-template-columns: 1fr; }
+      .sidebar, .panel { display: none; }
+    }
+
+    /* ---------------- CARDS ---------------- */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #000;
+      border: 1px solid rgba(0,255,102,0.2);
+      position: relative;
+      box-shadow: 0 2px 8px rgba(0,255,102,0.1);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-header img.avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .card-header .username {
+      font-weight: bold;
+      font-size: 1rem;
+    }
+    .card img.thumbnail {
+      max-width: 120px;
+      max-height: 120px;
+      border-radius: 8px;
+      float: left;
+      margin-right: 12px;
+      margin-bottom: 8px;
+      object-fit: cover;
+    }
+    .card-title {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: var(--neon);
+      margin: 0;
+    }
+    .card-desc {
+      font-size: 1rem;
+      color: var(--neon);
+      line-height: 1.4;
+    }
+    .card-meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .card-actions {
+      display: flex;
+      gap: 16px;
+      margin-top: 8px;
+      color: var(--muted);
+    }
+    .card-actions a {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+    .card-actions a:hover {
+      color: var(--neon);
+    }
+    .card.pinned {
+      border: 2px solid #00ff66;
+      animation: pinnedGlow 2s infinite;
+    }
+    @keyframes pinnedGlow {
+      0%, 100% { box-shadow: 0 0 10px #00ff66; }
+      50% { box-shadow: 0 0 20px #00ff66; }
+    }
+    .featured-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--accent);
+      color: #000;
+      font-size: 0.8rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .blog-card {
+      background: #1a2a1a;
+      border: 2px solid var(--neon);
+      box-shadow: 0 0 10px var(--neon);
+    }
+    .thumbnail-error {
+      color: var(--accent);
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+
+    /* ---------------- FOOTER ---------------- */
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--muted);
+      border-top: 2px solid var(--neon);
+      margin-top: 20px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+    }
+
+    #searchInput {
+      flex: 1;
+      min-width: 220px;
+      max-width: 400px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 2px solid var(--neon);
+      background: #000;
+      color: var(--neon);
+      font-size: 1rem;
+      outline: none;
+      box-shadow: 0 0 6px var(--neon);
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    #searchInput:focus {
+      border-color: #0f0;
+      box-shadow: 0 0 12px #0f0, 0 0 20px var(--neon);
+    }
+
+    #categorySelect {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 2px solid var(--neon);
+      background: #000;
+      color: var(--neon);
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 0 6px var(--neon);
+    }
+    #categorySelect:focus {
+      border-color: #0f0;
+      box-shadow: 0 0 12px #0f0;
+    }
+
+    .pagination {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      margin-top: 12px;
+    }
+    .pagination button {
+      margin: 0 6px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--neon);
+      background: #111;
+      color: var(--neon);
+      cursor: pointer;
+      transition: background .25s;
+    }
+    .pagination button:hover { background: var(--neon); color: #111; }
+    .pagination button[disabled] { background: #333; color: #777; cursor: default; }
+
+    #submissionForm input, #submissionForm textarea, #submissionForm select {
+      width: 100%;
+      margin: 8px 0;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid var(--neon);
+      background: #111;
+      color: var(--neon);
+      font-size: 1rem;
+    }
+    #submissionForm button {
+      background: var(--neon);
+      color: #000;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #submissionForm button:disabled {
+      background: #333;
+      color: #777;
+      cursor: not-allowed;
+    }
+
+    #commentForm {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #commentForm textarea {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid var(--neon);
+      background: #111;
+      color: var(--neon);
+      font-size: 1rem;
+      resize: vertical;
+    }
+    #commentForm button {
+      background: var(--neon);
+      color: #000;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #commentForm button:disabled {
+      background: #333;
+      color: #777;
+      cursor: not-allowed;
+    }
+
+    #virtualLinkModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      color: var(--neon);
+      z-index: 9999;
+      overflow: auto;
+    }
+    #virtualLinkModal .modal-content {
+      max-width: 900px;
+      width: 90%;
+      margin: 40px auto;
+      padding: 20px;
+      background: #111;
+      border-radius: 12px;
+      position: relative;
+    }
+    #virtualLinkModal img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    #virtualLinkModal iframe {
+      width: 100%;
+      height: 300px;
+      border: 0;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    #virtualLinkModal .actions {
+      display: flex;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    #virtualLinkModal .actions a {
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+    #virtualLinkModal .actions a:hover {
+      color: var(--neon);
+    }
+    #virtualLinkModal .thumbnail-error {
+      color: var(--accent);
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 600px) {
+      #virtualLinkModal .modal-content {
+        width: 95%;
+        padding: 15px;
+      }
+      #virtualLinkModal iframe {
+        height: 200px;
+      }
+    }
+
+    #submissionModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      color: var(--neon);
+      z-index: 9999;
+      overflow: auto;
+    }
+    #submissionModal .modal-content {
+      max-width: 600px;
+      width: 90%;
+      margin: 40px auto;
+      padding: 20px;
+      background: #111;
+      border-radius: 12px;
+      position: relative;
+    }
+  </style>
+</head>
+<body class="dark">
+  <header id="header">
+    <div class="brand">
+      <img style="width:200px;height:auto;" src="icons/joes-list-logo.png" alt="Joe's List Logo" />
+      <p>Explore Cool Websites, Videos, Shopping, Blogs, News, Images, AI</p>
+    </div>
+    <div class="controls">
+      <form id="searchForm" onsubmit="return false;">
+        <input type="text" id="searchInput" placeholder="Search Joe's List..." aria-label="Search items" />
+      </form>
+      <select id="categorySelect" aria-label="Filter by category">
+        <option value="All">All</option>
+      </select>
+      <button onclick="openSubmissionModal()">+ Submit</button>
+    </div>
+    <nav id="nav" class="menu">
+      <a href="#" class="nav-item active" data-tab="cool"><i data-feather="home"></i> Home</a>
+      <a href="#" class="nav-item" data-tab="videos"><i data-feather="video"></i> Videos</a>
+      <a href="#" class="nav-item" data-tab="shopping"><i data-feather="shopping-cart"></i> Shopping</a>
+      <a href="#" class="nav-item" data-tab="blogs"><i data-feather="book"></i> Blogs</a>
+      <a href="#" class="nav-item" data-tab="news"><i data-feather="rss"></i> News</a>
+      <a href="#" class="nav-item" data-tab="images"><i data-feather="image"></i> Images</a>
+      <a href="#" class="nav-item" data-tab="ai"><i data-feather="cpu"></i> AI</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <aside class="sidebar">
+      <img src="icons/over-one-million-links.png" alt="Over one million links" style="width:100%;margin-bottom:12px;" />
+      <h2>User Menu</h2>
+      <ul class="list-tabs" id="list-tabs">
+        <li class="list-tab active" data-type="cool" onclick="switchTab('profile')">Profile</li>
+        <li class="list-tab" data-type="videos" onclick="switchTab('notifications')">Notifications</li>
+        <li class="list-tab" data-type="shopping" onclick="switchTab('store')">My Products</li>
+        <li class="list-tab" data-type="blogs" onclick="switchTab('activity')">My Activity</li>
+        <li class="list-tab" data-type="news" onclick="switchTab('login')">Login</li>
+        <li class="list-tab" data-type="images" onclick="switchTab('register')">Register</li>
+        <li class="list-tab" data-type="ai" onclick="switchTab('widgets')">Widgets</li>
+      </ul>
+      <hr style="border:none;height:1px;background:rgba(255,255,255,0.02);margin:10px 0">
+      <div class="muted">Bookmarks</div>
+      <div id="bookmarkList" style="margin-top:8px"></div>
+    </aside>
+
+    <main class="main-content">
+      <div id="neon-widget"></div>
+      <script src="https://joeslist.neocities.org/widget.js"></script>
+      <div id="galleryContainer">
+        <div id="gallery" class="grid"></div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </main>
+
+    <aside class="panel">
+      <h2>Most Popular</h2>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <select id="popularCategory" style="width:50%;flex:1;padding:6px;border-radius:6px;background:#000;border:1px solid rgba(255,255,255,0.03);color:#00ff66;" aria-label="Filter popular by category"></select>
+        <button onclick="refreshPopular()" aria-label="Refresh popular items">Refresh</button>
+      </div>
+      <ul id="popularList" style="list-style:none;padding:0;margin:0"></ul>
+      <hr style="border:none;height:1px;margin:10px 0">
+      <div class="muted">Wishlist (products)</div>
+      <div id="wishlistList" style="margin-top:8px"></div>
+      <div id="neon-widget-sidebar"></div>
+      <script src="https://joeslist.neocities.org/widget2.js"></script>
+    </aside>
+  </div>
+
+  <div id="virtualLinkModal" style="display:none;">
+    <div class="modal-content">
+      <button id="vlCloseBtn" style="position:absolute;top:10px;right:10px;font-size:1.5rem;background:none;border:none;color:var(--neon);cursor:pointer;" aria-label="Close modal">✖</button>
+      <h2 id="vlTitle"></h2>
+      <div id="vlMeta" style="margin-bottom:12px;color:#aaa;"></div>
+      <div id="vlMedia" style="margin-top:12px;"></div>
+      <div id="vlContent" style="margin-top:12px;"></div>
+      <div class="actions">
+        <a href="#" id="vlCommentBtn" aria-label="Add comment"><i data-feather="message-circle"></i> Comment</a>
+        <a href="#" id="vlShareBtn" aria-label="Share item"><i data-feather="share-2"></i> Share</a>
+        <a href="#" id="vlLikeBtn" aria-label="Like item"><i data-feather="heart"></i> Like</a>
+        <a href="#" id="vlBookmarkBtn" aria-label="Bookmark item"><i data-feather="bookmark"></i> Bookmark</a>
+        <a href="#" id="vlWishlistBtn" style="display:none;" aria-label="Add to wishlist"><i data-feather="shopping-cart"></i> Wishlist</a>
+        <a href="#" id="vlPinBtn" aria-label="Pin item"><i data-feather="map-pin"></i> Pin</a>
+        <a href="#" id="vlOpenLinkBtn" style="display:none;" aria-label="Open link in new tab"><i data-feather="link"></i> Open Link</a>
+      </div>
+      <div id="vlComments" style="margin-top:12px;"></div>
+      <form id="commentForm" onsubmit="handleCommentSubmit(event)">
+        <textarea id="commentInput" placeholder="Add a comment" required></textarea>
+        <button type="submit">Submit Comment</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="submissionModal" style="display:none;">
+    <div class="modal-content">
+      <button id="submissionCloseBtn" style="position:absolute;top:10px;right:10px;font-size:1.5rem;background:none;border:none;color:var(--neon);cursor:pointer;" aria-label="Close modal">✖</button>
+      <h2 id="submissionTitle">Submit Content</h2>
+      <form id="submissionForm" onsubmit="handleSubmission(event)">
+        <select id="submissionType" onchange="updateSubmissionForm()" aria-label="Select submission type">
+          <option value="">Select Type</option>
+          <option value="cool">Cool Website</option>
+          <option value="videos">Video</option>
+          <option value="shopping">Shopping Deal</option>
+          <option value="blogs">Blog</option>
+          <option value="news">News</option>
+          <option value="images">Image</option>
+          <option value="ai">AI</option>
+          <option value="login">Login</option>
+          <option value="register">Register</option>
+        </select>
+        <div id="dynamicFormFields"></div>
+        <button type="submit" id="submitBtn" disabled>Submit</button>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    <div class="brand">
+      Copyright &copy; <span id="currentYear"></span> JOE'S LIST. All rights reserved. DESIGNED BY SURFZILLA.APP
+    </div>
+  </footer>
+
+  <script>
+const SERVER_URL = 'https://joeslist.refluxedpc.com/';
+
+// Persistence keys
+const KEY_CLICKS = 'joe_clicks';
+const KEY_BOOKMARKS = 'joe_bookmarks';
+const KEY_WISHLIST = 'joe_wishlist';
+const KEY_PINNED = 'joe_pinned';
+const KEY_COMMENTS = 'joe_comments';
+const KEY_LIKES = 'joe_likes';
+const KEY_THUMBNAILS = 'joe_thumbnails';
+
+let clicks = JSON.parse(localStorage.getItem(KEY_CLICKS) || '{}');
+let bookmarks = JSON.parse(localStorage.getItem(KEY_BOOKMARKS) || '{}');
+let wishlist = JSON.parse(localStorage.getItem(KEY_WISHLIST) || '{}');
+let pinned = JSON.parse(localStorage.getItem(KEY_PINNED) || '{}');
+let comments = JSON.parse(localStorage.getItem(KEY_COMMENTS) || '{}');
+let likes = JSON.parse(localStorage.getItem(KEY_LIKES) || '{}');
+let cachedThumbnails = JSON.parse(localStorage.getItem(KEY_THUMBNAILS) || '{}');
+
+let items = [];
+let currentCategory = 'All';
+let currentPage = 1;
+let itemsPerPage = 20;
+
+// Form templates for submission modal
+const formTemplates = {
+  cool: `
+    <input type="hidden" name="type" value="cool">
+    <input type="text" name="title" placeholder="Website Title" required>
+    <input type="url" name="url" placeholder="Website URL" required>
+    <textarea name="description" placeholder="Description"></textarea>
+    <input type="text" name="tags" placeholder="Tags (comma-separated)">
+  `,
+  videos: `
+    <input type="hidden" name="type" value="videos">
+    <input type="text" name="title" placeholder="Video Title" required>
+    <input type="url" name="url" placeholder="Video URL (e.g., YouTube)" required>
+    <textarea name="description" placeholder="Description"></textarea>
+    <input type="text" name="tags" placeholder="Tags (comma-separated)">
+  `,
+  shopping: `
+    <input type="hidden" name="type" value="shopping">
+    <input type="text" name="title" placeholder="Product Title" required>
+    <input type="url" name="url" placeholder="Product URL" required>
+    <input type="number" name="price" placeholder="Price" step="0.01">
+    <textarea name="description" placeholder="Description"></textarea>
+    <input type="text" name="tags" placeholder="Tags (comma-separated)">
+  `,
+  blogs: `
+    <input type="hidden" name="type" value="blogs">
+    <input type="text" name="title" placeholder="Blog Title" required>
+    <input type="url" name="url" placeholder="Blog URL" required>
+    <textarea name="description" placeholder="Description"></textarea>
+    <input type="text" name="tags" placeholder="Tags (comma-separated)">
+  `,
+  news: `
+    <input type="hidden" name="type" value="news">
+    <input type="text" name="title" placeholder="News Title" required>
+    <input type="url" name="url" placeholder="News URL" required>
+    <input type="text" name="source" placeholder="Source (e.g., CNN)">
+    <textarea name="description" placeholder="Description"></textarea>
+    <input type="text" name="tags" placeholder="Tags (comma-separated)">
+  `,
+  images: `
+    <input type="hidden" name="type" value="images">
+    <input type="text" name="title" placeholder="Image Title" required>
+    <input type="file" name="image" accept="image/*">
+    <input type="url" name="url" placeholder="Image URL (optional)">
+    <textarea name="description" placeholder="Description"></textarea>
+    <input type="text" name="tags" placeholder="Tags (comma-separated)">
+  `,
+  ai: `
+    <input type="hidden" name="type" value="ai">
+    <input type="text" name="title" placeholder="AI Tool/Content Title" required>
+    <input type="url" name="url" placeholder="AI URL" required>
+    <textarea name="description" placeholder="Description"></textarea>
+    <input type="text" name="tags" placeholder="Tags (comma-separated)">
+  `,
+  login: `
+    <input type="hidden" name="type" value="login">
+    <input type="email" name="email" placeholder="Email" required>
+    <input type="password" name="password" placeholder="Password" required>
+  `,
+  register: `
+    <input type="hidden" name="type" value="register">
+    <input type="text" name="username" placeholder="Username" required>
+    <input type="email" name="email" placeholder="Email" required>
+    <input type="password" name="password" placeholder="Password" required>
+    <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+  `
+};
+
+// Utils
+function saveClicks() { localStorage.setItem(KEY_CLICKS, JSON.stringify(clicks)); }
+function saveBookmarks() { localStorage.setItem(KEY_BOOKMARKS, JSON.stringify(bookmarks)); }
+function saveWishlist() { localStorage.setItem(KEY_WISHLIST, JSON.stringify(wishlist)); }
+function savePinned() { localStorage.setItem(KEY_PINNED, JSON.stringify(pinned)); }
+function saveComments() { localStorage.setItem(KEY_COMMENTS, JSON.stringify(comments)); }
+function saveLikes() { localStorage.setItem(KEY_LIKES, JSON.stringify(likes)); }
+function saveThumbnails() { localStorage.setItem(KEY_THUMBNAILS, JSON.stringify(cachedThumbnails)); }
+
+function escapeHtml(s) {
+  return (s || '').toString()
+    .replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+}
+
+function extractHostname(url) {
+  try { return new URL(url).hostname; } catch (e) { return url || ''; }
+}
+
+function extractYouTubeId(url) {
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
+    if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+  } catch (e) {}
+  return null;
+}
+
+function getThumbnailUrl(item) {
+  const thumbnail = (item.thumbnail && item.thumbnail.trim() !== '') ? item.thumbnail :
+                    (item.image && item.image.trim() !== '') ? item.image :
+                    (item.og_image && item.og_image.trim() !== '') ? item.og_image :
+                    '/icons/joeslist-192.png';
+  return thumbnail;
+}
+
+function getFaviconUrl(item) {
+  const url = item.url || '#';
+  return isValidUrl(url) ? `https://www.google.com/s2/favicons?domain=${extractHostname(url)}` : '/icons/joes-list-logo.png';
+}
+
+function isValidUrl(url) {
+  return url && url !== '#' && url.match(/^https?:\/\//);
+}
+
+function generateDynamicUrl(id, category) {
+  const baseUrl = window.location.origin + window.location.pathname;
+  const params = new URLSearchParams();
+  params.append('id', id);
+  params.append('category', category);
+  return `${baseUrl}?${params.toString()}`;
+}
+
+function updateURL(id, category) {
+  const url = generateDynamicUrl(id, category);
+  window.history.pushState({ id, category }, '', url);
+  updateOgMetaTags(items.find(i => i.id === id));
+}
+
+function updateOgMetaTags(item = {}) {
+  document.querySelectorAll('meta[property^="og:"], meta[name^="twitter:"]').forEach(el => el.remove());
+  const head = document.head;
+  const tags = [
+    { property: 'og:title', content: item.title || item.og_title || 'Joe\'s List' },
+    { property: 'og:description', content: item.description || item.snippet || item.og_description || 'Explore curated websites, videos, shopping, blogs, news, images, and AI content.' },
+    { property: 'og:type', content: item.category === 'videos' ? 'video.other' : 'website' },
+    { property: 'og:url', content: item.id ? generateDynamicUrl(item.id, item.category) : window.location.href },
+    { property: 'og:image', content: getThumbnailUrl(item) },
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: item.title || item.og_title || 'Joe\'s List' },
+    { name: 'twitter:description', content: item.description || item.snippet || item.og_description || 'Explore curated websites, videos, shopping, blogs, news, images, and AI content.' },
+    { name: 'twitter:image', content: getThumbnailUrl(item) }
+  ];
+  tags.forEach(tag => {
+    const meta = document.createElement('meta');
+    if (tag.property) meta.setAttribute('property', tag.property);
+    if (tag.name) meta.setAttribute('name', tag.name);
+    meta.setAttribute('content', tag.content);
+    head.appendChild(meta);
+  });
+}
+
+// Cache thumbnail in localStorage with expiry
+async function cacheThumbnail(url) {
+  const cacheKey = btoa(url);
+  const cached = cachedThumbnails[cacheKey];
+  
+  // Check if cached and not expired (7 days)
+  if (cached && Date.now() - cached.timestamp < 7 * 24 * 60 * 60 * 1000) {
+    return cached.dataUrl;
+  }
+
+  try {
+    const response = await fetch(`https://api.thumbnail.ws/api/ab9428d76163a3003d66118d95fd3ea1981a2c34ddd1/thumbnail/get?url=${encodeURIComponent(url)}&width=250`);
+    if (response.ok) {
+      const blob = await response.blob();
+      const reader = new FileReader();
+      return new Promise((resolve) => {
+        reader.onload = () => {
+          const dataUrl = reader.result;
+          cachedThumbnails[cacheKey] = {
+            dataUrl,
+            timestamp: Date.now()
+          };
+          saveThumbnails();
+          resolve(dataUrl);
+        };
+        reader.readAsDataURL(blob);
+      });
+    }
+  } catch (error) {
+    console.error('Failed to cache thumbnail:', error);
+  }
+  
+  return url; // Return original URL if caching fails
+}
+
+// Update submission modal form fields
+function updateSubmissionForm() {
+  const type = document.getElementById('submissionType').value;
+  document.getElementById('submissionTitle').textContent = {
+    login: 'Login',
+    register: 'Register'
+  }[type] || 'Submit Content';
+  document.getElementById('dynamicFormFields').innerHTML = DOMPurify.sanitize(formTemplates[type] || '');
+  document.getElementById('submitBtn').disabled = !type;
+}
+
+// Open submission modal
+function openSubmissionModal(type = '') {
+  document.getElementById('submissionType').value = type;
+  updateSubmissionForm();
+  document.getElementById('submissionModal').style.display = 'block';
+}
+
+// Close submission modal
+document.getElementById('submissionCloseBtn').addEventListener('click', () => {
+  document.getElementById('submissionModal').style.display = 'none';
+  document.getElementById('submissionType').value = '';
+  updateSubmissionForm();
+});
+
+// Handle form submission
+async function handleSubmission(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    try {
+        const response = await fetch(`${SERVER_URL}/submit.php`, {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+        if (result.success) {
+            document.getElementById('submissionModal').style.display = 'none';
+            if (formData.get('type') === 'login' || formData.get('type') === 'register') {
+                localStorage.setItem('user_id', result.user_id);
+                localStorage.setItem('username', result.username);
+                updateUserUI(result.user_id, result.username);
+            } else {
+                loadGallery(currentCategory);
+            }
+            alert('Submission successful!');
+        } else {
+            alert(result.error);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// Update user UI
+function updateUserUI(userId, username) {
+  const sidebar = document.querySelector('.sidebar');
+  let userInfo = sidebar.querySelector('.user-info');
+  if (!userInfo) {
+    userInfo = document.createElement('div');
+    userInfo.className = 'user-info';
+    sidebar.insertBefore(userInfo, sidebar.querySelector('hr'));
+  }
+  userInfo.innerHTML = `Logged in as <strong>${DOMPurify.sanitize(username)}</strong> <button onclick="logout()">Logout</button>`;
+  loadBookmarks(userId);
+  loadWishlist(userId);
+}
+
+// Logout
+function logout() {
+  localStorage.removeItem('user_id');
+  localStorage.removeItem('username');
+  document.querySelector('.user-info')?.remove();
+  document.getElementById('bookmarkList').innerHTML = '';
+  document.getElementById('wishlistList').innerHTML = '';
+}
+
+// Load gallery - CORRECTED VERSION
+async function loadGallery(category = 'All') {
+  items = [];
+  currentCategory = category;
+  
+  if (category === 'All') {
+    const categories = ['cool', 'videos', 'shopping', 'blogs', 'news', 'images', 'ai'];
+    for (const cat of categories) {
+      try {
+        const data = await (await fetch(`${SERVER_URL}/${cat}.json`)).json();
+        items.push(...data.map(item => ({ ...item, category: cat })));
+      } catch (error) {
+        console.error(`Error loading ${cat}.json:`, error);
+      }
+    }
+  } else {
+    try {
+      const data = await (await fetch(`${SERVER_URL}/${category}.json`)).json();
+      items = data.map(item => ({ ...item, category }));
+    } catch (error) {
+      console.error(`Error loading ${category}.json:`, error);
+      items = [];
+    }
+  }
+
+  // Sort items
+  items.sort((a, b) => {
+    const aFeatured = !!a.featured ? 1 : 0;
+    const bFeatured = !!b.featured ? 1 : 0;
+    const aPinned = pinned[a.id || a.url] ? 1 : 0;
+    const bPinned = pinned[b.id || b.url] ? 1 : 0;
+    return bFeatured - aFeatured || bPinned - aPinned || new Date(b.timestamp || 0) - new Date(a.timestamp || 0);
+  });
+
+  renderGallery();
+  renderPagination(items.length);
+  feather.replace();
+}
+
+function renderGallery() {
+  const start = (currentPage - 1) * itemsPerPage;
+  const pageItems = items.slice(start, start + itemsPerPage);
+  
+  document.getElementById('gallery').innerHTML = pageItems.length 
+    ? DOMPurify.sanitize(pageItems.map(item => renderItem(item)).join(''))
+    : '<p>No items found</p>';
+}
+
+// Render item - IMPROVED VERSION
+function renderItem(item) {
+  const title = item.title || item.og_title || 'Untitled';
+  const desc = item.description || item.snippet || item.og_description || '';
+  const url = item.url || '#';
+  const id = item.id || url;
+  const domain = url !== '#' ? extractHostname(url) : '';
+  const thumb = getThumbnailUrl(item);
+  const favicon = getFaviconUrl(item);
+  const meta = item.category ? item.category.toUpperCase() : 'LINK';
+  const date = item.timestamp ? new Date(item.timestamp).toLocaleDateString() : '';
+  const isProduct = item.category === 'shopping';
+  const isFeatured = !!item.featured;
+  const pinnedCls = pinned[id] ? 'pinned' : '';
+  const likeCount = likes[id] ? likes[id].count : 0;
+  const commentCount = comments[id] ? comments[id].length : 0;
+
+  return `
+    <article class="card ${pinnedCls} ${isFeatured ? 'blog-card' : ''}" data-id="${escapeHtml(id)}" data-title="${escapeHtml(title)}" data-category="${escapeHtml(item.category || '')}">
+      ${isFeatured ? `<div class="featured-badge">FEATURED</div>` : ''}
+      <div class="card-header">
+        <img class="avatar" src="${escapeHtml(favicon)}" alt="Site favicon" onerror="this.src='/icons/joeslist-192.png';" />
+        <div>
+          <div class="username">${escapeHtml(localStorage.getItem('username') || 'Anonymous')}</div>
+          <div class="card-meta muted">${escapeHtml(meta)}${date ? ' • ' + escapeHtml(date) : ''}${domain ? ' • ' + escapeHtml(domain) : ''}</div>
+        </div>
+      </div>
+      
+      <div class="card-title js-expand" data-id="${escapeHtml(id)}" data-category="${escapeHtml(item.category)}">${escapeHtml(title)}</div>
+      
+      <div class="card-desc">
+        ${thumb !== '/icons/joeslist-192.png' ? `<img class="thumbnail" src="https://api.thumbnail.ws/api/ab9428d76163a3003d66118d95fd3ea1981a2c34ddd1/thumbnail/get?url=${encodeURIComponent(url)}&width=250" alt="${escapeHtml(title)} thumbnail" loading="lazy" onerror="this.style.display='none';">` : ''}
+        ${escapeHtml(desc)}
+      </div>
+      
+      ${renderMediaFor(item)}
+      
+      <div class="card-actions">
+        <a href="#" class="js-comment" data-id="${escapeHtml(id)}" aria-label="Comment"><i data-feather="message-circle"></i> ${commentCount}</a>
+        <a href="#" class="js-share" data-id="${escapeHtml(id)}" data-title="${escapeHtml(title)}" data-description="${escapeHtml(desc)}" aria-label="Share"><i data-feather="share-2"></i> Share</a>
+        <a href="#" class="js-like" data-id="${escapeHtml(id)}" aria-label="Like"><i data-feather="heart"></i> ${likeCount}</a>
+        <a href="#" class="js-bookmark" data-id="${escapeHtml(id)}" aria-label="Bookmark"><i data-feather="bookmark"></i></a>
+        ${isProduct ? `<a href="#" class="js-wishlist" data-id="${escapeHtml(id)}" aria-label="Wishlist"><i data-feather="shopping-cart"></i></a>` : ''}
+        <a href="#" class="js-pin" data-id="${escapeHtml(id)}" aria-label="Pin"><i data-feather="map-pin"></i></a>
+        ${url !== '#' ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" aria-label="Open link"><i data-feather="external-link"></i></a>` : ''}
+      </div>
+    </article>
+  `;
+}
+
+// Render media for videos
+function renderMediaFor(item) {
+  const type = (item.category || '').toLowerCase();
+  if (type === 'videos') {
+    const vid = extractYouTubeId(item.url || '');
+    if (vid) return `
+      <div class="video-container" style="margin-top:8px">
+        <iframe class="video-iframe" src="https://www.youtube.com/embed/${escapeHtml(vid)}" 
+                loading="lazy" style="width:100%;height:200px;border:0;border-radius:8px"
+                title="${escapeHtml(item.title || 'Video')}" allowfullscreen>
+        </iframe>
+      </div>`;
+  }
+  return '';
+}
+
+// Expand card content inline
+function expandCardContent(id, category) {
+  // First collapse any other expanded cards
+  document.querySelectorAll('.card.expanded').forEach(card => {
+    if (card.dataset.id !== id) {
+      card.classList.remove('expanded');
+      const expandedContent = card.querySelector('.expanded-content');
+      if (expandedContent) expandedContent.remove();
+    }
+  });
+
+  const card = document.querySelector(`[data-id="${id}"]`);
+  if (!card) return;
+
+  if (card.classList.contains('expanded')) {
+    // Collapse
+    card.classList.remove('expanded');
+    const expandedContent = card.querySelector('.expanded-content');
+    if (expandedContent) expandedContent.remove();
+    // Reset URL
+    window.history.pushState({}, '', window.location.pathname);
+    updateOgMetaTags();
+  } else {
+    // Expand
+    card.classList.add('expanded');
+    const item = items.find(i => (i.id || i.url) === id);
+    if (item) {
+      const expandedContent = document.createElement('div');
+      expandedContent.className = 'expanded-content';
+      expandedContent.innerHTML = `
+        <div class="full-description">
+          ${escapeHtml(item.description || item.snippet || item.og_description || 'No additional description available.')}
+        </div>
+        <div class="metadata">
+          <div><strong>Category:</strong> ${escapeHtml(item.category || 'N/A')}</div>
+          <div><strong>Date:</strong> ${item.timestamp ? new Date(item.timestamp).toLocaleDateString() : 'N/A'}</div>
+          <div><strong>Domain:</strong> ${item.url ? extractHostname(item.url) : 'N/A'}</div>
+          <div><strong>Views:</strong> ${clicks[item.url]?.count || 0}</div>
+        </div>
+        <div style="margin-top: 16px;">
+          <div><strong>Comments (${comments[id] ? comments[id].length : 0}):</strong></div>
+          <div id="comments-${escapeHtml(id)}">
+            ${comments[id] ? comments[id].map(c => 
+              `<p style="margin: 8px 0; padding: 8px; background: rgba(0,255,102,0.1); border-radius: 4px;">
+                <strong>${escapeHtml(c.username)}:</strong> ${escapeHtml(c.comment)}
+                <small style="color: var(--muted); display: block;">${new Date(c.timestamp).toLocaleString()}</small>
+              </p>`
+            ).join('') : '<p style="color: var(--muted);">No comments yet.</p>'}
+          </div>
+          <div style="margin-top: 12px;">
+            <textarea id="comment-input-${escapeHtml(id)}" placeholder="Add a comment..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--neon); background: #111; color: var(--neon);"></textarea>
+            <button onclick="addComment('${escapeHtml(id)}')" style="margin-top: 8px; background: var(--neon); color: #000; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Add Comment</button>
+          </div>
+        </div>
+        <button class="collapse-btn" onclick="expandCardContent('${escapeHtml(id)}', '${escapeHtml(category)}')">Collapse</button>
+      `;
+      card.appendChild(expandedContent);
+      
+      // Update URL and SEO tags
+      updateURL(id, category);
+      
+      // Scroll to card
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+}
+
+// Add comment function
+function addComment(id) {
+  const textarea = document.getElementById(`comment-input-${id}`);
+  const comment = textarea.value.trim();
+  if (!comment) return;
+
+  const username = localStorage.getItem('username') || 'Anonymous';
+  if (!comments[id]) comments[id] = [];
+  
+  comments[id].push({
+    comment: comment,
+    username: username,
+    timestamp: new Date().toISOString()
+  });
+  saveComments();
+  
+  // Refresh the expanded content
+  const item = items.find(i => (i.id || i.url) === id);
+  if (item) {
+    expandCardContent(id, item.category);
+  }
+  
+  // Update the card comment count
+  renderGallery();
+  feather.replace();
+}
+
+// Render pagination
+function renderPagination(total) {
+  const pagination = document.getElementById('pagination');
+  if (!pagination) return;
+  
+  const totalPages = Math.ceil(total / itemsPerPage);
+  if (totalPages <= 1) {
+    pagination.innerHTML = '';
+    return;
+  }
+
+  let paginationHTML = '';
+  
+  // Previous button
+  paginationHTML += `<button ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">‹</button>`;
+  
+  // Page numbers (show max 7 pages)
+  let startPage = Math.max(1, currentPage - 3);
+  let endPage = Math.min(totalPages, currentPage + 3);
+  
+  if (startPage > 1) {
+    paginationHTML += `<button onclick="changePage(1)">1</button>`;
+    if (startPage > 2) paginationHTML += `<span>...</span>`;
+  }
+  
+  for (let i = startPage; i <= endPage; i++) {
+    paginationHTML += `<button ${i === currentPage ? 'class="active"' : ''} onclick="changePage(${i})">${i}</button>`;
+  }
+  
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) paginationHTML += `<span>...</span>`;
+    paginationHTML += `<button onclick="changePage(${totalPages})">${totalPages}</button>`;
+  }
+  
+  // Next button
+  paginationHTML += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">›</button>`;
+  
+  pagination.innerHTML = paginationHTML;
+}
+
+function changePage(page) {
+  currentPage = page;
+  renderGallery();
+  renderPagination(items.length);
+  document.getElementById('gallery').scrollIntoView({ behavior: 'smooth' });
+  feather.replace();
+}
+
+// Load bookmarks
+function loadBookmarks(userId) {
+  const userBookmarks = Object.entries(bookmarks);
+  document.getElementById('bookmarkList').innerHTML = userBookmarks.length 
+    ? DOMPurify.sanitize(userBookmarks.map(([id, b]) => `<p><a href="#" onclick="expandCardContent('${id}', '${b.category || 'unknown'}')">${escapeHtml(b.title)}</a></p>`).join(''))
+    : '<p style="color: var(--muted);">No bookmarks yet</p>';
+}
+
+// Load wishlist
+function loadWishlist(userId) {
+  const userWishlist = Object.entries(wishlist);
+  document.getElementById('wishlistList').innerHTML = userWishlist.length 
+    ? DOMPurify.sanitize(userWishlist.map(([id, w]) => `<p><a href="#" onclick="expandCardContent('${id}', 'shopping')">${escapeHtml(w.title)}</a></p>`).join(''))
+    : '<p style="color: var(--muted);">No wishlist items</p>';
+}
+
+// Load popular items
+async function refreshPopular() {
+  const popularItems = Object.entries(clicks)
+    .sort(([,a], [,b]) => b.count - a.count)
+    .slice(0, 5);
+  
+  document.getElementById('popularList').innerHTML = popularItems.length 
+    ? DOMPurify.sanitize(popularItems.map(([url, data]) => `<li><a href="${escapeHtml(url)}" target="_blank">${escapeHtml(data.title)} (${data.count} clicks)</a></li>`).join(''))
+    : '<p>No popular items yet</p>';
+}
+
+// Populate category selects
+function populateCategories() {
+  const categories = ['All', 'cool', 'videos', 'shopping', 'blogs', 'news', 'images', 'ai'];
+  const optionsHTML = categories.map(c => `<option value="${c}">${c === 'All' ? c : c.charAt(0).toUpperCase() + c.slice(1)}</option>`).join('');
+  document.getElementById('categorySelect').innerHTML = DOMPurify.sanitize(optionsHTML);
+  document.getElementById('popularCategory').innerHTML = DOMPurify.sanitize(optionsHTML);
+}
+
+// Search handler
+document.getElementById('searchInput').addEventListener('input', () => {
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  if (!query) {
+    renderGallery();
+    return;
+  }
+  
+  const filteredItems = items.filter(item => 
+    (item.title || '').toLowerCase().includes(query) ||
+    (item.description || '').toLowerCase().includes(query) ||
+    (item.og_title || '').toLowerCase().includes(query) ||
+    (item.og_description || '').toLowerCase().includes(query)
+  );
+  
+  const start = (currentPage - 1) * itemsPerPage;
+  const pageItems = filteredItems.slice(start, start + itemsPerPage);
+  
+  document.getElementById('gallery').innerHTML = pageItems.length 
+    ? DOMPurify.sanitize(pageItems.map(item => renderItem(item)).join(''))
+    : '<p>No items found matching your search</p>';
+  
+  feather.replace();
+});
+
+// Category select handler
+document.getElementById('categorySelect').addEventListener('change', (e) => {
+  loadGallery(e.target.value);
+});
+
+// Handle sidebar tab switching
+function switchTab(view) {
+  document.querySelector('.list-tab.active')?.classList.remove('active');
+  const tab = Array.from(document.querySelectorAll('.list-tab')).find(t => t.getAttribute('onclick') === `switchTab('${view}')`);
+  if (tab) tab.classList.add('active');
+
+  if (['login', 'register'].includes(view)) {
+    openSubmissionModal(view);
+    return;
+  }
+
+  const userId = localStorage.getItem('user_id');
+  if (!userId && !['login', 'register'].includes(view)) {
+    openSubmissionModal('login');
+    return;
+  }
+
+  document.getElementById('gallery').innerHTML = DOMPurify.sanitize(`<p>${view.charAt(0).toUpperCase() + view.slice(1)} view (Coming soon)</p>`);
+}
+
+// Event delegation for card actions
+document.getElementById('gallery').addEventListener('click', (e) => {
+  const target = e.target.closest('a, .js-expand');
+  if (!target) return;
+
+  const id = target.dataset.id;
+  const category = target.dataset.category || currentCategory;
+
+  if (target.matches('.js-expand')) {
+    e.preventDefault();
+    expandCardContent(id, category);
+  } else if (target.matches('.js-like')) {
+    e.preventDefault();
+    likes[id] = likes[id] || { count: 0 };
+    likes[id].count = likes[id].liked ? likes[id].count - 1 : likes[id].count + 1;
+    likes[id].liked = !likes[id].liked;
+    saveLikes();
+    renderGallery();
+    feather.replace();
+  } else if (target.matches('.js-bookmark')) {
+    e.preventDefault();
+    const item = items.find(i => (i.id || i.url) === id);
+    if (bookmarks[id]) {
+      delete bookmarks[id];
+    } else {
+      bookmarks[id] = { title: item?.title || 'Untitled', category: item?.category };
+    }
+    saveBookmarks();
+    loadBookmarks(localStorage.getItem('user_id'));
+  } else if (target.matches('.js-wishlist')) {
+    e.preventDefault();
+    const item = items.find(i => (i.id || i.url) === id);
+    if (wishlist[id]) {
+      delete wishlist[id];
+    } else {
+      wishlist[id] = { title: item?.title || 'Untitled', category: 'shopping' };
+    }
+    saveWishlist();
+    loadWishlist(localStorage.getItem('user_id'));
+  } else if (target.matches('.js-pin')) {
+    e.preventDefault();
+    pinned[id] = !pinned[id];
+    if (!pinned[id]) delete pinned[id];
+    savePinned();
+    renderGallery();
+    feather.replace();
+  } else if (target.matches('.js-share')) {
+    e.preventDefault();
+    const item = items.find(i => (i.id || i.url) === id);
+    const shareUrl = generateDynamicUrl(id, category);
+    if (navigator.share) {
+      navigator.share({
+        title: item?.title || 'Check this out',
+        url: shareUrl
+      });
+    } else {
+      navigator.clipboard.writeText(shareUrl).then(() => alert('Link copied to clipboard!'));
+    }
+  }
+});
+
+// Navigation event handler - FIXED
+document.getElementById('nav').addEventListener('click', (e) => {
+  const target = e.target.closest('.nav-item');
+  if (!target) return;
+  e.preventDefault();
+  
+  // Update active state
+  document.querySelector('.nav-item.active')?.classList.remove('active');
+  target.classList.add('active');
+  
+  // Update category select to match
+  const category = target.dataset.tab;
+  document.getElementById('categorySelect').value = category;
+  
+  // Load the category
+  currentPage = 1; // Reset to first page
+  loadGallery(category);
+});
+
+// Handle browser back/forward buttons
+window.addEventListener('popstate', (event) => {
+  if (event.state && event.state.id) {
+    expandCardContent(event.state.id, event.state.category);
+  } else {
+    // Close any expanded cards
+    document.querySelectorAll('.card.expanded').forEach(card => {
+      card.classList.remove('expanded');
+      const expandedContent = card.querySelector('.expanded-content');
+      if (expandedContent) expandedContent.remove();
+    });
+    updateOgMetaTags();
+  }
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('currentYear').textContent = new Date().getFullYear();
+  populateCategories();
+  
+  // Check URL params for direct links
+  const urlParams = new URLSearchParams(window.location.search);
+  const itemId = urlParams.get('id');
+  const itemCategory = urlParams.get('category');
+  
+  if (itemId && itemCategory) {
+    loadGallery(itemCategory).then(() => {
+      setTimeout(() => expandCardContent(itemId, itemCategory), 500);
+    });
+  } else {
+    loadGallery('All');
+  }
+  
+  if (localStorage.getItem('user_id')) {
+    updateUserUI(localStorage.getItem('user_id'), localStorage.getItem('username'));
+  }
+  
+  refreshPopular();
+  feather.replace();
+});
+</script>
+</body>
+</html>

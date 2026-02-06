@@ -1,0 +1,33 @@
+joes-list/
+├── index.php
+├── config.php
+├── install.php
+├── manifest.json
+├── service-worker.js
+├── app.js (for modals/PWA)
+├── uploads/ (create this folder)
+├── application/
+│   ├── controllers/
+│   │   ├── Home.php
+│   │   ├── User.php
+│   │   └── Submission.php
+│   ├── models/
+│   │   ├── User_model.php
+│   │   ├── Submission_model.php
+│   │   └── Notification_model.php
+│   └── views/
+│       ├── layouts/
+│       │   ├── header.php
+│       │   └── footer.php
+│       ├── home.php
+│       ├── profile.php
+│       ├── submission_form.php (modal template)
+│       ├── submission_view.php (generic for all types)
+│       ├── login.php (modal)
+│       ├── register.php (modal)
+│       └── ai_chat.php (placeholder)
+└── assets/
+    ├── css/
+    │   └── style.css
+    └── js/
+        └── modal.js
